@@ -113,25 +113,39 @@ def create_heygen_video(text):
     }
 
     try:
-        logging.info("Sending request to HeyGen API...")
+        print("\n=== HeyGen API Request ===")
+        print(f"Headers: {headers}")
+        print(f"Payload: {payload}")
+        print("========================\n")
+
         response = requests.post(
             "https://api.heygen.com/v2/video/generate",
             headers=headers,
             json=payload
         )
-        logging.info(f"HeyGen API Response Status: {response.status_code}")
+        
+        print("\n=== HeyGen API Response ===")
+        print(f"Status Code: {response.status_code}")
+        print(f"Response Headers: {dict(response.headers)}")
+        print(f"Response Body: {response.text}")
+        print("==========================\n")
+
         response.raise_for_status()
         response_json = response.json()
-        logging.info(f"HeyGen API Response: {response_json}")
         
         # Validate response
         validate_heygen_response(response_json)
         return response_json
     except requests.exceptions.HTTPError as e:
-        logging.error(f"HeyGen API HTTP error: {e.response.text}")
+        print(f"\n=== HeyGen API Error ===")
+        print(f"Error: {str(e)}")
+        print(f"Response: {e.response.text}")
+        print("=======================\n")
         return {'error': f"HeyGen API error: {e.response.text}"}
     except Exception as e:
-        logging.error(f"HeyGen API error: {str(e)}")
+        print(f"\n=== General Error ===")
+        print(f"Error: {str(e)}")
+        print("===================\n")
         return {'error': f"HeyGen API error: {str(e)}"}
 
 @app.route('/chat', methods=['POST'])
