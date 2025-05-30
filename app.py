@@ -91,12 +91,12 @@ def main():
             continue
 
 if __name__ == "__main__":
-    # If running on Render (they set PORT automatically), run Flask
-    if os.getenv('PORT'):
-        port = int(os.getenv('PORT'))
+    if os.environ.get("PORT"):
+        # Running on Render or web host
+        port = int(os.environ["PORT"])
         print(f"Starting Flask server on port {port}")
-        app.run(host='0.0.0.0', port=port)
+        app.run(host="0.0.0.0", port=port)
     else:
-        # Otherwise, run terminal mode locally
+        # Running locally — terminal mode
         main()
         
