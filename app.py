@@ -91,13 +91,12 @@ def main():
             continue
 
 if __name__ == "__main__":
-    # Check if we're running in production (Render)
-    if os.getenv('RENDER'):
-        # Run the Flask app
-        port = int(os.getenv('PORT', 10000))
-        print(f"Starting server on port {port}")  # Add logging
+    # If running on Render (they set PORT automatically), run Flask
+    if os.getenv('PORT'):
+        port = int(os.getenv('PORT'))
+        print(f"Starting Flask server on port {port}")
         app.run(host='0.0.0.0', port=port)
     else:
-        # Run the terminal version
+        # Otherwise, run terminal mode locally
         main()
         
