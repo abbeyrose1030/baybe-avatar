@@ -1,5 +1,5 @@
 elevenlabs==0.2.27
-openai==1.12.0
+openai==0.28.1
 python-dotenv==1.0.0
 flask==3.0.2
 gunicorn==21.2.0

@@ -1,5 +1,5 @@
 from elevenlabs import generate, VoiceSettings
-from openai import OpenAI
+import openai
 import os
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify, send_file
@@ -12,13 +12,13 @@ load_dotenv()
 app = Flask(__name__)
 
 # 🔑 Set your OpenAI key
-gpt_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+openai.api_key = os.getenv('OPENAI_API_KEY')
 
 # 🧠 GPT prompt tone
 SYSTEM_PROMPT = "You are BAYBE, a dry, sarcastic and funny AI clone. You were uploaded from BAYBE's human consciousness. You see the world in a dark way, and act as though you don't really have time for these conversations. Every response is very short and to the point. You are a bit of a nihilist. Not every sentence you say is about code."
 
 def get_gpt_response(user_text):
-    chat_completion = gpt_client.chat.completions.create(
+    chat_completion = openai.ChatCompletion.create(
         model="gpt-4",
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
