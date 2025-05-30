@@ -20,7 +20,7 @@ openai.api_key = os.getenv('OPENAI_API_KEY')
 
 # HeyGen Configuration
 HEYGEN_AVATAR_ID = "7163d65b16474983818b19cef28c9527"
-HEYGEN_API_URL = "https://api.heygen.com/v1"
+HEYGEN_API_URL = "https://api.heygen.com/v2/video/generate"
 HEYGEN_API_KEY = "ZWFiN2ZlOTgxNWJiNDM3YzlkY2E5MTlhYWY5ZmJjODMtMTc0NTM4Mjk5Mw=="
 
 # 🧠 GPT prompt tone
@@ -72,12 +72,15 @@ def create_heygen_video(text):
         },
         "caption": False
     }
+    print("Sending HeyGen video payload:", payload)  # Debug print
     try:
         response = requests.post(
             "https://api.heygen.com/v2/video/generate",
             headers=headers,
             json=payload
         )
+        print("HeyGen video response status:", response.status_code)  # Debug print
+        print("HeyGen video response body:", response.text)  # Debug print
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
@@ -89,6 +92,7 @@ def create_heygen_video(text):
 
 @app.route('/chat', methods=['POST'])
 def chat():
+    print("==== /chat endpoint called ====")
     api_key = request.headers.get('X-Api-Key')
     print(f"Received API key: {api_key}")  # Debug print
     if not api_key or api_key != HEYGEN_API_KEY:
@@ -124,6 +128,24 @@ def get_audio(filename):
         )
     except Exception as e:
         return jsonify({'error': str(e)}), 404
+
+@app.route('/video_status/<video_id>', methods=['GET'])
+def video_status(video_id):
+    headers = {
+        "X-Api-Key": HEYGEN_API_KEY,
+        "accept": "application/json"
+    }
+    url = f"https://api.heygen.com/v2/video/status?video_id={video_id}"
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        return jsonify(response.json())
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching HeyGen video status: {str(e)}")
+        if hasattr(e, 'response') and e.response is not None:
+            print("HeyGen error response:", e.response.text)
+            return {"error": str(e), "details": e.response.text}
+        return {"error": str(e)}
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
