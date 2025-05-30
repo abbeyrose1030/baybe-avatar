@@ -45,28 +45,33 @@ def generate_audio(text):
     )
     return audio
 
-def create_heygen_video(text, audio_url):
+def create_heygen_video(text):
     headers = {
         "X-Api-Key": HEYGEN_API_KEY,
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "accept": "application/json"
     }
     
-    # Create the video request
     payload = {
-        "avatar_id": HEYGEN_AVATAR_ID,
-        "text": text,
-        "audio_url": audio_url,
-        "background": {
-            "type": "color",
-            "value": "#000000"
+        "video_inputs": [
+            {
+                "avatar_id": HEYGEN_AVATAR_ID,
+                "script": {
+                    "type": "text",
+                    "input": text
+                }
+            }
+        ],
+        "dimension": {
+            "width": 1280,
+            "height": 720
         },
-        "ratio": "16:9",
-        "test": True  # Set to False for production
+        "caption": False
     }
     
     try:
         response = requests.post(
-            f"{HEYGEN_API_URL}/videos/create",
+            "https://api.heygen.com/v2/video/generate",
             headers=headers,
             json=payload
         )
@@ -104,7 +109,7 @@ def chat():
         audio_url = f"https://{request.host}/audio/{os.path.basename(temp_audio_path)}"
         
         # Create HeyGen video
-        video_data = create_heygen_video(response, audio_url)
+        video_data = create_heygen_video(response)
         
         return jsonify({
             'response': response,
