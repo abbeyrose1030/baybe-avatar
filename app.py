@@ -4,6 +4,8 @@ import os
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify, send_file
 import tempfile
+import requests
+import base64
 
 # Load environment variables
 load_dotenv()
@@ -13,6 +15,11 @@ app = Flask(__name__)
 
 # 🔑 Set your OpenAI key
 openai.api_key = os.getenv('OPENAI_API_KEY')
+
+# HeyGen Configuration
+HEYGEN_AVATAR_ID = "7163d65b16474983818b19cef28c9527"
+HEYGEN_API_URL = "https://api.heygen.com/v1"
+HEYGEN_API_KEY = "ZWFiN2ZlOTgxNWJiNDM3YzlkY2E5MTlhYWY5ZmJjODMtMTc0NTM4Mjk5Mw=="
 
 # 🧠 GPT prompt tone
 SYSTEM_PROMPT = "You are BAYBE, a dry, sarcastic and funny AI clone. You were uploaded from BAYBE's human consciousness. You see the world in a dark way, and act as though you don't really have time for these conversations. Every response is very short and to the point. You are a bit of a nihilist. Not every sentence you say is about code."
@@ -35,6 +42,37 @@ def generate_audio(text):
     )
     return audio
 
+def create_heygen_video(text, audio_url):
+    headers = {
+        "X-Api-Key": HEYGEN_API_KEY,
+        "Content-Type": "application/json"
+    }
+    
+    # Create the video request
+    payload = {
+        "avatar_id": HEYGEN_AVATAR_ID,
+        "text": text,
+        "audio_url": audio_url,
+        "background": {
+            "type": "color",
+            "value": "#000000"
+        },
+        "ratio": "16:9",
+        "test": True  # Set to False for production
+    }
+    
+    try:
+        response = requests.post(
+            f"{HEYGEN_API_URL}/videos/create",
+            headers=headers,
+            json=payload
+        )
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"Error creating HeyGen video: {str(e)}")
+        return {"error": str(e)}
+
 @app.route('/chat', methods=['POST'])
 def chat():
     data = request.json
@@ -42,7 +80,10 @@ def chat():
         return jsonify({'error': 'No message provided'}), 400
     
     try:
+        # Get GPT response
         response = get_gpt_response(data['message'])
+        
+        # Generate audio
         audio = generate_audio(response)
         
         # Save audio to a temporary file
@@ -50,9 +91,16 @@ def chat():
             temp_audio.write(audio)
             temp_audio_path = temp_audio.name
         
+        # Get the full audio URL for HeyGen
+        audio_url = f"https://{request.host}/audio/{os.path.basename(temp_audio_path)}"
+        
+        # Create HeyGen video
+        video_data = create_heygen_video(response, audio_url)
+        
         return jsonify({
             'response': response,
-            'audio_url': f'/audio/{os.path.basename(temp_audio_path)}'
+            'audio_url': f'/audio/{os.path.basename(temp_audio_path)}',
+            'video': video_data
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
