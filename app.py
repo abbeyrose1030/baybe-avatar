@@ -6,12 +6,14 @@ from flask import Flask, request, jsonify, send_file
 import tempfile
 import requests
 import base64
+from flask_cors import CORS
 
 # Load environment variables
 load_dotenv()
 
 # Initialize Flask app
 app = Flask(__name__)
+CORS(app)
 
 # 🔑 Set your OpenAI key
 openai.api_key = os.getenv('OPENAI_API_KEY')
@@ -77,6 +79,7 @@ def create_heygen_video(text, audio_url):
 def chat():
     # Check for API key
     api_key = request.headers.get('X-Api-Key')
+    print(f"Received API key: {api_key}")  # Debug print
     if not api_key or api_key != HEYGEN_API_KEY:
         return jsonify({'error': 'Invalid or missing API key'}), 401
 
