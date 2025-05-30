@@ -10,6 +10,13 @@ import logging
 # Load environment variables
 load_dotenv()
 
+# Debug logging for environment variables
+print("=== Environment Variables Check ===")
+print(f"OPENAI_API_KEY present: {'Yes' if os.getenv('OPENAI_API_KEY') else 'No'}")
+print(f"HEYGEN_API_KEY present: {'Yes' if os.getenv('HEYGEN_API_KEY') else 'No'}")
+print(f"HEYGEN_API_KEY length: {len(os.getenv('HEYGEN_API_KEY', '')) if os.getenv('HEYGEN_API_KEY') else 0}")
+print("=================================")
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -34,9 +41,16 @@ HEYGEN_AVATAR_ID = "7163d65b16474983818b19cef28c9527"  # Replace with your real 
 HEYGEN_VOICE_ID = "f6e28c412d464c2793e7a208bf10089b"     # Replace with your custom voice ID
 HEYGEN_API_KEY = os.getenv("HEYGEN_API_KEY")             # Store your key safely in .env
 
+# Log HeyGen configuration (redacted for security)
+logging.info(f"HeyGen Avatar ID: {HEYGEN_AVATAR_ID}")
+logging.info(f"HeyGen Voice ID: {HEYGEN_VOICE_ID}")
+logging.info(f"HeyGen API Key present: {'Yes' if HEYGEN_API_KEY else 'No'}")
+
 # Validate HeyGen configuration
 if not HEYGEN_AVATAR_ID or not HEYGEN_VOICE_ID:
     raise ValueError("HeyGen Avatar ID and Voice ID must be set")
+if not HEYGEN_API_KEY:
+    raise ValueError("HeyGen API Key must be set")
 
 # 🧠 GPT prompt tone
 SYSTEM_PROMPT = "You are BAYBE, a dry, sarcastic and funny AI clone. You were uploaded from BAYBE's human consciousness. You see the world in a dark way, and act as though you don't really have time for these conversations. Every response is very short and to the point. You are a bit of a nihilist. Not every sentence you say is about code."
@@ -72,7 +86,7 @@ def get_gpt_response(user_text):
 def create_heygen_video(text):
     """Create a video using HeyGen API."""
     headers = {
-        "X-Api-Key": HEYGEN_API_KEY,
+        "x-api-key": HEYGEN_API_KEY,  # Changed from X-Api-Key to x-api-key
         "Content-Type": "application/json",
         "accept": "application/json"
     }
@@ -99,11 +113,13 @@ def create_heygen_video(text):
     }
 
     try:
+        logging.info("Sending request to HeyGen API...")
         response = requests.post(
             "https://api.heygen.com/v2/video/generate",
             headers=headers,
             json=payload
         )
+        logging.info(f"HeyGen API Response Status: {response.status_code}")
         response.raise_for_status()
         response_json = response.json()
         logging.info(f"HeyGen API Response: {response_json}")
@@ -125,7 +141,10 @@ def chat():
     logging.info(f"Received chat request: {data}")
     
     if not data or 'message' not in data:
-        return jsonify({'error': 'No message provided'}), 400
+        return jsonify({
+            "BAYBE's Response": "Error: No message provided",
+            "Video Status": "error"
+        }), 400
 
     try:
         # Step 1: Get GPT response
@@ -138,7 +157,11 @@ def chat():
 
         if "error" in video_gen_response:
             logging.error(f"Video generation failed: {video_gen_response}")
-            return jsonify({'error': 'Failed to generate video', 'details': video_gen_response})
+            return jsonify({
+                "BAYBE's Response": gpt_reply,
+                "Video Status": "error",
+                "error": video_gen_response.get('error', 'Failed to generate video')
+            })
 
         video_id = video_gen_response['data']['video_id']
         logging.info(f"Video generation started with ID: {video_id}")
@@ -161,11 +184,9 @@ def chat():
                     video_url = status_json['data']['video_url']
                     logging.info(f"Video completed: {video_url}")
                     return jsonify({
-                        'response': gpt_reply,
-                        'video': {
-                            'status': 'completed',
-                            'url': video_url
-                        }
+                        "BAYBE's Response": gpt_reply,
+                        "Video Status": "completed",
+                        "Video URL": video_url
                     })
 
                 # Exponential backoff with max 5 seconds
@@ -176,17 +197,19 @@ def chat():
 
         logging.warning(f"Video generation timed out for ID: {video_id}")
         return jsonify({
-            'response': gpt_reply,
-            'video': {
-                'status': 'processing',
-                'video_id': video_id
-            }
+            "BAYBE's Response": gpt_reply,
+            "Video Status": "processing",
+            "Video ID": video_id
         })
 
     except Exception as e:
         import traceback
         logging.error(f"Error in chat endpoint: {str(e)}\n{traceback.format_exc()}")
-        return jsonify({'error': str(e)}), 500
+        return jsonify({
+            "BAYBE's Response": "Error occurred",
+            "Video Status": "error",
+            "error": str(e)
+        }), 500
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
