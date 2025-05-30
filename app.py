@@ -79,6 +79,9 @@ def create_heygen_video(text):
         return response.json()
     except requests.exceptions.RequestException as e:
         print(f"Error creating HeyGen video: {str(e)}")
+        if hasattr(e, 'response') and e.response is not None:
+            print("HeyGen error response:", e.response.text)
+            return {"error": str(e), "details": e.response.text}
         return {"error": str(e)}
 
 @app.route('/chat', methods=['POST'])
