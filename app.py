@@ -55,6 +55,7 @@ def create_heygen_video(audio_url):
         "video_inputs": [
             {
                 "avatar_id": HEYGEN_AVATAR_ID,
+                "voice": {},
                 "script": {
                     "type": "audio",
                     "audio_url": audio_url
