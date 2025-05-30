@@ -94,7 +94,7 @@ if __name__ == "__main__":
     if os.getenv('RENDER'):
         # Run the Flask app
         port = int(os.getenv('PORT', 10000))
-        app.run(host='0.0.0.0', port=port)
+        app.run(host='0.0.0.0', port=port, debug=False)
     else:
         # Run the terminal version
         main()
