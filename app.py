@@ -1,11 +1,9 @@
-from TTS.api import TTS
-from elevenlabs import generate, play, VoiceSettings
+from elevenlabs import generate, VoiceSettings
 from openai import OpenAI
-import tempfile
 import os
 from dotenv import load_dotenv
-from flask import Flask, request, jsonify
-import time
+from flask import Flask, request, jsonify, send_file
+import tempfile
 
 # Load environment variables
 load_dotenv()
@@ -29,8 +27,7 @@ def get_gpt_response(user_text):
     )
     return chat_completion.choices[0].message.content
 
-def speak(text):
-    print("\nBAYBE:", text)
+def generate_audio(text):
     audio = generate(
         text=text,
         voice="VucGM2AClXcav8Kladjq",
@@ -40,7 +37,7 @@ def speak(text):
             similarity_boost=0.9
         )
     )
-    play(audio)
+    return audio
 
 @app.route('/chat', methods=['POST'])
 def chat():
@@ -50,46 +47,31 @@ def chat():
     
     try:
         response = get_gpt_response(data['message'])
-        return jsonify({'response': response})
+        audio = generate_audio(response)
+        
+        # Save audio to a temporary file
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as temp_audio:
+            temp_audio.write(audio)
+            temp_audio_path = temp_audio.name
+        
+        return jsonify({
+            'response': response,
+            'audio_url': f'/audio/{os.path.basename(temp_audio_path)}'
+        })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-def main():
-    # Only initialize TTS in terminal mode
-    print("Loading TTS model (this might take a sec)...")
-    tts = TTS(model_name="tts_models/en/ljspeech/tacotron2-DDC", progress_bar=False, gpu=False)
-    
-    print("\n🤖 BAYBE Chat Terminal")
-    print("Type 'quit' or 'exit' to end the conversation\n")
-    
-    while True:
-        try:
-            user_input = input("\nYou: ").strip()
-            
-            if user_input.lower() in ['quit', 'exit']:
-                print("\nGoodbye! 👋")
-                break
-                
-            if not user_input:
-                continue
-                
-            response = get_gpt_response(user_input)
-            speak(response)
-            
-        except KeyboardInterrupt:
-            print("\n\nGoodbye! 👋")
-            break
-        except Exception as e:
-            print(f"\nError: {str(e)}")
-            continue
+@app.route('/audio/<filename>', methods=['GET'])
+def get_audio(filename):
+    try:
+        return send_file(
+            os.path.join(tempfile.gettempdir(), filename),
+            mimetype='audio/mpeg'
+        )
+    except Exception as e:
+        return jsonify({'error': str(e)}), 404
 
 if __name__ == "__main__":
-    if os.environ.get("PORT"):
-        # Running on Render or web host
-        port = int(os.environ["PORT"])
-        print(f"Starting Flask server on port {port}")
-        app.run(host="0.0.0.0", port=port)
-    else:
-        # Running locally — terminal mode
-        main()
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
         
