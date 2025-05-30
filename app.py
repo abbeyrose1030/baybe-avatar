@@ -39,7 +39,7 @@ openai.api_key = os.getenv('OPENAI_API_KEY')
 # HeyGen Configuration
 HEYGEN_AVATAR_ID = "7163d65b16474983818b19cef28c9527"  # Replace with your real avatar ID
 HEYGEN_VOICE_ID = "f6e28c412d464c2793e7a208bf10089b"     # Replace with your custom voice ID
-HEYGEN_API_KEY = os.getenv("HEYGEN_API_KEY")             # Store your key safely in .env
+HEYGEN_API_KEY = os.getenv("HEYGEN_API_KEY")  # Load from environment variable
 
 # Log HeyGen configuration (redacted for security)
 logging.info(f"HeyGen Avatar ID: {HEYGEN_AVATAR_ID}")
