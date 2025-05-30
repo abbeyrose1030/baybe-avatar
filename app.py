@@ -45,20 +45,19 @@ def generate_audio(text):
     )
     return audio
 
-def create_heygen_video(text):
+def create_heygen_video(audio_url):
     headers = {
         "X-Api-Key": HEYGEN_API_KEY,
         "Content-Type": "application/json",
         "accept": "application/json"
     }
-    
     payload = {
         "video_inputs": [
             {
                 "avatar_id": HEYGEN_AVATAR_ID,
                 "script": {
-                    "type": "text",
-                    "input": text
+                    "type": "audio",
+                    "audio_url": audio_url
                 }
             }
         ],
@@ -68,7 +67,6 @@ def create_heygen_video(text):
         },
         "caption": False
     }
-    
     try:
         response = requests.post(
             "https://api.heygen.com/v2/video/generate",
@@ -112,7 +110,7 @@ def chat():
         audio_url = f"https://{request.host}/audio/{os.path.basename(temp_audio_path)}"
         
         # Create HeyGen video
-        video_data = create_heygen_video(response)
+        video_data = create_heygen_video(audio_url)
         
         return jsonify({
             'response': response,
