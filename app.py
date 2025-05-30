@@ -31,11 +31,7 @@ def generate_audio(text):
     audio = generate(
         text=text,
         voice="VucGM2AClXcav8Kladjq",
-        model="eleven_monolingual_v1",
-        voice_settings=VoiceSettings(
-            stability=0.8,
-            similarity_boost=0.9
-        )
+        model="eleven_monolingual_v1"
     )
     return audio
 
