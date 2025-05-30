@@ -20,9 +20,10 @@ gpt_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 # 🧠 GPT prompt tone
 SYSTEM_PROMPT = "You are BAYBE, a dry, sarcastic and funny AI clone. You were uploaded from BAYBE's human consciousness. You see the world in a dark way, and act as though you don't really have time for these conversations. Every response is very short and to the point. You are a bit of a nihilist. Not every sentence you say is about code."
 
-# 🎙 Load local Coqui TTS voice
-print("Loading TTS model (this might take a sec)...")
-tts = TTS(model_name="tts_models/en/ljspeech/tacotron2-DDC", progress_bar=False, gpu=False)
+# Initialize ElevenLabs client
+client = ElevenLabs(
+    api_key=os.getenv('ELEVENLABS_API_KEY')
+)
 
 def get_gpt_response(user_text):
     chat_completion = gpt_client.chat.completions.create(
@@ -33,10 +34,6 @@ def get_gpt_response(user_text):
         ]
     )
     return chat_completion.choices[0].message.content
-
-client = ElevenLabs(
-    api_key=os.getenv('ELEVENLABS_API_KEY')
-)
 
 def speak(text):
     print("\nBAYBE:", text)
@@ -65,6 +62,10 @@ def chat():
         return jsonify({'error': str(e)}), 500
 
 def main():
+    # Only initialize TTS in terminal mode
+    print("Loading TTS model (this might take a sec)...")
+    tts = TTS(model_name="tts_models/en/ljspeech/tacotron2-DDC", progress_bar=False, gpu=False)
+    
     print("\n🤖 BAYBE Chat Terminal")
     print("Type 'quit' or 'exit' to end the conversation\n")
     
