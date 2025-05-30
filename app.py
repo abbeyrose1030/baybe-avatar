@@ -56,7 +56,7 @@ def create_heygen_video(text):
             {
                 "avatar_id": HEYGEN_AVATAR_ID,
                 "voice": {
-                    "type": "heygen",
+                    "type": "text",
                     "voice_id": "f6e28c412d464c2793e7a208bf10089b"
                 },
                 "script": {

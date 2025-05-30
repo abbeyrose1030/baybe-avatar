@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BAYBE Chat Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        #messageInput {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #response {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+            min-height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <h1>BAYBE Chat Test</h1>
+    <input type="text" id="messageInput" placeholder="Type your message here...">
+    <button onclick="sendMessage()">Send Message</button>
+    <div id="response">Response will appear here...</div>
+
+    <script>
+        async function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const responseDiv = document.getElementById('response');
+            
+            const apiUrl = 'https://baybe-avatar.onrender.com/chat';
+            const apiKey = 'ZWFiN2ZlOTgxNWJiNDM3YzlkY2E5MTlhYWY5ZmJjODMtMTc0NTM4Mjk5Mw==';
+            
+            try {
+                responseDiv.textContent = 'Sending message...';
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Api-Key': apiKey
+                    },
+                    body: JSON.stringify({
+                        message: messageInput.value
+                    })
+                });
+                
+                const data = await response.json();
+                responseDiv.innerHTML = `
+                    <p><strong>BAYBE's Response:</strong> ${data.response}</p>
+                    <p><strong>Video Status:</strong> ${JSON.stringify(data.video)}</p>
+                `;
+            } catch (error) {
+                responseDiv.textContent = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html> 
