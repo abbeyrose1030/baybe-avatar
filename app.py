@@ -75,6 +75,11 @@ def create_heygen_video(text, audio_url):
 
 @app.route('/chat', methods=['POST'])
 def chat():
+    # Check for API key
+    api_key = request.headers.get('X-Api-Key')
+    if not api_key or api_key != HEYGEN_API_KEY:
+        return jsonify({'error': 'Invalid or missing API key'}), 401
+
     data = request.json
     if not data or 'message' not in data:
         return jsonify({'error': 'No message provided'}), 400
