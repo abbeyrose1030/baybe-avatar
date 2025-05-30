@@ -1,6 +1,5 @@
 from TTS.api import TTS
-from elevenlabs.client import ElevenLabs
-from elevenlabs import VoiceSettings
+from elevenlabs import generate, play, VoiceSettings
 from openai import OpenAI
 import tempfile
 import os
@@ -20,11 +19,6 @@ gpt_client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 # 🧠 GPT prompt tone
 SYSTEM_PROMPT = "You are BAYBE, a dry, sarcastic and funny AI clone. You were uploaded from BAYBE's human consciousness. You see the world in a dark way, and act as though you don't really have time for these conversations. Every response is very short and to the point. You are a bit of a nihilist. Not every sentence you say is about code."
 
-# Initialize ElevenLabs client
-client = ElevenLabs(
-    api_key=os.getenv('ELEVENLABS_API_KEY')
-)
-
 def get_gpt_response(user_text):
     chat_completion = gpt_client.chat.completions.create(
         model="gpt-4",
@@ -37,16 +31,15 @@ def get_gpt_response(user_text):
 
 def speak(text):
     print("\nBAYBE:", text)
-    audio = client.text_to_speech.convert(
-        voice_id="VucGM2AClXcav8Kladjq",
-        model_id="eleven_monolingual_v1",
+    audio = generate(
         text=text,
+        voice="VucGM2AClXcav8Kladjq",
+        model="eleven_monolingual_v1",
         voice_settings=VoiceSettings(
             stability=0.8,
             similarity_boost=0.9
         )
     )
-    from elevenlabs import play
     play(audio)
 
 @app.route('/chat', methods=['POST'])
