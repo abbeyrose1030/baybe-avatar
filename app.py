@@ -111,6 +111,9 @@ def chat():
             'video': video_data
         })
     except Exception as e:
+        import traceback
+        print("Exception in /chat endpoint:", e)
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 @app.route('/audio/<filename>', methods=['GET'])
