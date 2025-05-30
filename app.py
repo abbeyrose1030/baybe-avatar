@@ -45,7 +45,7 @@ def generate_audio(text):
     )
     return audio
 
-def create_heygen_video(audio_url):
+def create_heygen_video(text):
     headers = {
         "X-Api-Key": HEYGEN_API_KEY,
         "Content-Type": "application/json",
@@ -55,10 +55,13 @@ def create_heygen_video(audio_url):
         "video_inputs": [
             {
                 "avatar_id": HEYGEN_AVATAR_ID,
-                "voice": {},
+                "voice": {
+                    "type": "heygen",
+                    "voice_id": "f6e28c412d464c2793e7a208bf10089b"
+                },
                 "script": {
-                    "type": "audio",
-                    "audio_url": audio_url
+                    "type": "text",
+                    "input": text
                 }
             }
         ],
@@ -85,7 +88,6 @@ def create_heygen_video(audio_url):
 
 @app.route('/chat', methods=['POST'])
 def chat():
-    # Check for API key
     api_key = request.headers.get('X-Api-Key')
     print(f"Received API key: {api_key}")  # Debug print
     if not api_key or api_key != HEYGEN_API_KEY:
@@ -99,23 +101,11 @@ def chat():
         # Get GPT response
         response = get_gpt_response(data['message'])
         
-        # Generate audio
-        audio = generate_audio(response)
-        
-        # Save audio to a temporary file
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as temp_audio:
-            temp_audio.write(audio)
-            temp_audio_path = temp_audio.name
-        
-        # Get the full audio URL for HeyGen
-        audio_url = f"https://{request.host}/audio/{os.path.basename(temp_audio_path)}"
-        
-        # Create HeyGen video
-        video_data = create_heygen_video(audio_url)
+        # Create HeyGen video using GPT response as script
+        video_data = create_heygen_video(response)
         
         return jsonify({
             'response': response,
-            'audio_url': f'/audio/{os.path.basename(temp_audio_path)}',
             'video': video_data
         })
     except Exception as e:
