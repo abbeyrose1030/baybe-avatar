@@ -40,7 +40,8 @@ def generate_audio(text):
     audio = generate(
         text=text,
         voice="VucGM2AClXcav8Kladjq",
-        model="eleven_monolingual_v1"
+        model="eleven_monolingual_v1",
+        api_key=os.getenv("ELEVENLABS_API_KEY")
     )
     return audio
 
